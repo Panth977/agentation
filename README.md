@@ -12,7 +12,7 @@
 ## Install
 
 ```bash
-npm install agentation-svelte -D
+npm install @panth977/agentation-svelte -D
 # optional — enables DOM screenshot capture for drawings:
 npm install modern-screenshot -D
 ```
@@ -23,7 +23,7 @@ Requires **Svelte 5** (peer dependency). Works with Vite / SvelteKit / Tauri.
 
 ```svelte
 <script lang="ts">
-  import { Agentation } from 'agentation-svelte';
+  import { Agentation } from '@panth977/agentation-svelte';
 </script>
 
 <YourApp />
@@ -70,7 +70,7 @@ Use callbacks to receive annotation data directly:
 
 ```svelte
 <script lang="ts">
-  import { Agentation, type Annotation } from 'agentation-svelte';
+  import { Agentation, type Annotation } from '@panth977/agentation-svelte';
 
   function handleAnnotation(annotation: Annotation) {
     // Structured data - no parsing needed

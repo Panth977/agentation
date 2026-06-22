@@ -36,7 +36,7 @@ package/repo private.
 
 ### a. Pick a package name (check availability)
 ```bash
-npm view agentation-svelte   # 404 = available; otherwise pick a scoped name like @panth977/agentation-svelte
+npm view @panth977/agentation-svelte   # confirm your scope is free (unscoped "agentation-svelte" is already taken)
 ```
 If you use a scope (`@panth977/...`), scoped packages are private by default —
 you must publish with `--access public` (see step 4).

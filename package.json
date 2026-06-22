@@ -1,6 +1,9 @@
 {
-  "name": "agentation-svelte",
+  "name": "@panth977/agentation-svelte",
   "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Visual feedback for AI coding agents — Svelte 5 port of benjitaylor/agentation",
   "license": "PolyForm-Shield-1.0.0",
   "author": "Panth977 (Svelte port) — original: Benji Taylor (https://github.com/benjitaylor/agentation)",

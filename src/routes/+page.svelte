@@ -1,6 +1,6 @@
 <script lang="ts">
   // --- Install snippet (copy to clipboard with animated icon) ---
-  const installCommand = "npm install agentation-svelte";
+  const installCommand = "npm install @panth977/agentation-svelte";
   let copied = $state(false);
   let copyTimer: number | null = null;
   async function copyInstall() {
