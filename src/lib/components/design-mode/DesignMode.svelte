@@ -116,6 +116,7 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from "svelte";
   import { COMPONENT_MAP, DEFAULT_SIZES } from "./types.js";
   import Skeleton from "./Skeleton.svelte";
   import AnnotationPopupCSS from "../annotation-popup-css/AnnotationPopupCSS.svelte";
@@ -162,7 +163,7 @@
   }
 
   // --- Clear selection when the other overlay signals deselect ---
-  let deselectRef = deselectSignal;
+  let deselectRef = untrack(() => deselectSignal);
   $effect(() => {
     if (deselectSignal !== deselectRef) {
       deselectRef = deselectSignal;
@@ -171,7 +172,7 @@
   });
 
   // --- Animate all out when clearSignal fires ---
-  let clearRef = clearSignal;
+  let clearRef = untrack(() => clearSignal);
   $effect(() => {
     if (clearSignal !== undefined && clearSignal !== clearRef) {
       clearRef = clearSignal;

@@ -126,6 +126,7 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from "svelte";
   import { captureElement } from "./section-detection.js";
   import AnnotationPopupCSS from "../annotation-popup-css/AnnotationPopupCSS.svelte";
   import type { DetectedSection, RearrangeState } from "./types.js";
@@ -152,14 +153,14 @@
   const sections = $derived(rearrangeState.sections);
 
   // Mutable (non-reactive) ref mirroring latest rearrangeState for event handlers
-  let rearrangeStateRef = rearrangeState;
+  let rearrangeStateRef = untrack(() => rearrangeState);
   $effect(() => { rearrangeStateRef = rearrangeState; });
 
   let selectedIds = $state<Set<string>>(new Set());
 
   // Animate all out when clearSignal fires
   let exitingAll = $state(false);
-  let clearRef = clearSignal;
+  let clearRef = untrack(() => clearSignal);
   $effect(() => {
     if (clearSignal !== undefined && clearSignal !== clearRef) {
       clearRef = clearSignal;
@@ -170,7 +171,7 @@
   });
 
   // Clear selection when the other overlay signals deselect
-  let deselectRef = deselectSignal;
+  let deselectRef = untrack(() => deselectSignal);
   $effect(() => {
     if (deselectSignal !== deselectRef) {
       deselectRef = deselectSignal;
@@ -237,10 +238,12 @@
 
   // Delay showing outlines on mount if sections are already moved (elements animate first)
   let outlinesReady = $state(
-    !rearrangeState.sections.some(s => {
-      const o = s.originalRect, c = s.currentRect;
-      return Math.abs(o.x - c.x) > 1 || Math.abs(o.y - c.y) > 1 || Math.abs(o.width - c.width) > 1 || Math.abs(o.height - c.height) > 1;
-    }),
+    untrack(() =>
+      !rearrangeState.sections.some(s => {
+        const o = s.originalRect, c = s.currentRect;
+        return Math.abs(o.x - c.x) > 1 || Math.abs(o.y - c.y) > 1 || Math.abs(o.width - c.width) > 1 || Math.abs(o.height - c.height) > 1;
+      }),
+    ),
   );
   $effect(() => {
     if (!outlinesReady) {
@@ -930,6 +933,12 @@
         class={styles.deleteButton}
         onmousedown={(e) => e.stopPropagation()}
         onclick={() => handleDelete(section.id)}
+        onkeydown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleDelete(section.id);
+          }
+        }}
         role="button"
         tabindex="-1"
       >
@@ -966,6 +975,12 @@
           class={styles.deleteButton}
           onmousedown={(e) => e.stopPropagation()}
           onclick={() => handleDelete(section.id)}
+          onkeydown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleDelete(section.id);
+            }
+          }}
           role="button"
           tabindex="-1"
         >

@@ -172,6 +172,12 @@
       role="button"
       tabindex="0"
       onclick={() => onBlankCanvasChange(!blankCanvas)}
+      onkeydown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onBlankCanvasChange(!blankCanvas);
+        }
+      }}
     >
       <span class={styles.canvasToggleIcon}>
         <svg viewBox="0 0 14 14" width="14" height="14" fill="none">

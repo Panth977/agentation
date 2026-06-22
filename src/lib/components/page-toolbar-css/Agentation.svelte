@@ -369,11 +369,12 @@
   let isDarkMode = $state(true);
   let showEntranceAnimation = $state(false);
 
-  // Server sync
-  let currentSessionId = $state<string | null>(initialSessionId ?? null);
+  // Server sync — initial-value reads of props (intentional; untrack to silence
+  // the "reference only captures initial value" warning).
+  let currentSessionId = $state<string | null>(untrack(() => initialSessionId) ?? null);
   let sessionInitialized = false;
   let connectionStatus = $state<"disconnected" | "connecting" | "connected">(
-    endpoint ? "connecting" : "disconnected",
+    untrack(() => endpoint) ? "connecting" : "disconnected",
   );
 
   // Draggable toolbar
@@ -2717,6 +2718,7 @@
       <!-- Morphing container -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <div
         class={`${styles.toolbarContainer} ${isActive ? styles.expanded : styles.collapsed} ${showEntranceAnimation ? styles.entrance : ""} ${isToolbarHiding ? styles.hiding : ""} ${!settings.webhooksEnabled && (isValidUrl(settings.webhookUrl) || isValidUrl(webhookUrl || "")) ? styles.serverConnected : ""}`}
         onclick={(e) => {

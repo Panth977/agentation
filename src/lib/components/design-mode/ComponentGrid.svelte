@@ -27,6 +27,7 @@
     <div class={styles.paletteSection}>
       <div class={styles.paletteSectionTitle}>{section.section}</div>
       {#each section.items as item (item.type)}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div
           class={`${styles.paletteItem} ${activeType === item.type ? styles.active : ""} ${blankCanvas ? styles.wireframe : ""}`}
           onclick={() => onSelect(item.type)}
