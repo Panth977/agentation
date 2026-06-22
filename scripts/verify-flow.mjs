@@ -67,6 +67,15 @@ if (popups > 0) {
   }
 }
 markersAfter = await $("[data-annotation-marker]");
+const markerPos = await page.evaluate(() => {
+  const m = document.querySelector("[data-annotation-marker]");
+  if (!m) return null;
+  const cs = getComputedStyle(m);
+  const r = m.getBoundingClientRect();
+  const h1 = document.querySelector("h1").getBoundingClientRect();
+  return { topStyle: cs.top, rectTop: Math.round(r.top), h1Top: Math.round(h1.top) };
+});
+console.log("marker position:", JSON.stringify(markerPos));
 console.log("annotation markers after submit:", markersAfter);
 
 // 4. Copy output: find the copy button and read clipboard.

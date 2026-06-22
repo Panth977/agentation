@@ -86,7 +86,7 @@
   class={`${styles.marker} ${isMulti ? styles.multiSelect : ""} ${animClass} ${showDeleteHover ? styles.hovered : ""}`}
   data-annotation-marker
   style:left={`${annotation.x}%`}
-  style:top={annotation.y}
+  style:top={`${annotation.y}px`}
   style:background-color={showDeleteHover ? undefined : markerColor}
   style:animation-delay={animationDelay}
   onmouseenter={() => onHoverEnter(annotation)}

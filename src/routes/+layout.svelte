@@ -1,14 +1,16 @@
 <script lang="ts">
   import { Agentation } from "$lib/index.js";
+  import Footer from "./Footer.svelte";
   let { children } = $props();
 </script>
 
 <header class="site-header">
-  <a class="brand" href="/">◆ Acme</a>
+  <a class="brand" href="/">◆ Agentation</a>
   <nav>
     <a href="/">Home</a>
     <a href="/dashboard">Dashboard</a>
     <a href="/pricing">Pricing</a>
+    <a href="https://github.com/benjitaylor/agentation" target="_blank" rel="noopener">Original ↗</a>
   </nav>
   <button class="cta">Sign up</button>
 </header>
@@ -17,15 +19,7 @@
   {@render children?.()}
 </div>
 
-<footer class="site-footer">
-  <div>
-    <strong>Acme</strong>
-    <p>A sample app for testing the Agentation Svelte toolbar.</p>
-  </div>
-  <div>
-    <span>Product</span><span>Docs</span><span>Blog</span><span>Contact</span>
-  </div>
-</footer>
+<Footer />
 
 <!-- The ported toolbar — available on every page -->
 <Agentation />
@@ -78,18 +72,5 @@
   }
   .site-body {
     min-height: 70vh;
-  }
-  .site-footer {
-    display: flex;
-    justify-content: space-between;
-    padding: 2rem;
-    margin-top: 3rem;
-    border-top: 1px solid #eaeaea;
-    background: #fff;
-    color: #777;
-  }
-  .site-footer span {
-    display: block;
-    margin-bottom: 0.4rem;
   }
 </style>

@@ -20,7 +20,7 @@
   class={`${styles.marker} ${fixed ? styles.fixed : ""} ${styles.hovered} ${isMulti ? styles.multiSelect : ""} ${styles.exit}`}
   data-annotation-marker
   style:left={`${annotation.x}%`}
-  style:top={annotation.y}
+  style:top={`${annotation.y}px`}
 >
   <IconXmark size={isMulti ? 12 : 10} />
 </div>

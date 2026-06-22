@@ -17,7 +17,7 @@
 <div
   class={`${styles.marker} ${styles.pending} ${isMultiSelect ? styles.multiSelect : ""} ${isExiting ? styles.exit : styles.enter}`}
   style:left={`${x}%`}
-  style:top={y}
+  style:top={`${y}px`}
   style:background-color={isMultiSelect
     ? "var(--agentation-color-green)"
     : "var(--agentation-color-accent)"}

@@ -1,8 +1,27 @@
 {
   "name": "agentation-svelte",
   "version": "0.1.0",
-  "description": "Visual feedback for AI coding agents — Svelte 5 port",
+  "description": "Visual feedback for AI coding agents — Svelte 5 port of benjitaylor/agentation",
   "license": "PolyForm-Shield-1.0.0",
+  "author": "Panth977 (Svelte port) — original: Benji Taylor (https://github.com/benjitaylor/agentation)",
+  "homepage": "https://github.com/Panth977/agentation#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Panth977/agentation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Panth977/agentation/issues"
+  },
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "agentation",
+    "ai",
+    "ai-agents",
+    "annotations",
+    "visual-feedback",
+    "feedback"
+  ],
   "type": "module",
   "svelte": "./dist/index.js",
   "types": "./dist/index.d.ts",
