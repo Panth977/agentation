@@ -4,22 +4,31 @@
 
 ## 0. Licensing / legal (READ THIS)
 
-This package is a **port of [benjitaylor/agentation](https://github.com/benjitaylor/agentation)**,
-which is licensed under **PolyForm Shield 1.0.0**, © Benji Taylor.
+This package is a **port (derivative work) of
+[benjitaylor/agentation](https://github.com/benjitaylor/agentation)**, licensed
+under **PolyForm Shield 1.0.0**, © Benji Taylor.
 
-PolyForm Shield lets you *use* the software but **prohibits using it (or a
-derivative) to compete with the licensor's product**. Publishing a public port
-to npm is redistribution of a derivative work and **may not be permitted** under
-that license without the original author's consent.
+That license **explicitly grants the right to use, copy, modify, AND distribute**
+the software (including derivative works) — **no consent is required to publish**,
+*as long as you meet its three conditions*:
 
-**Before publishing publicly, do one of:**
-- Get explicit permission / a license grant from Benji Taylor, OR
-- Confirm your use is allowed (e.g. internal/private use, a private npm package,
-  or a private GitHub repo), OR
-- Reach out via the contact on https://github.com/benjitaylor/agentation.
+1. **Non-compete** — you may not use it to provide "a product or service that
+   competes with the Software or any product or service offered by the Licensor
+   that includes the Software."
+2. **Keep notices** — don't remove/obscure copyright or license notices.
+3. **Ship the license** — include a copy of the PolyForm Shield 1.0.0 license
+   when you distribute the software or any derivative.
 
-Keep the attribution in `README.md` and `LICENSE` intact either way. If unsure,
-keep the GitHub repo/package **private**.
+**What this means in practice:**
+- ✅ Conditions 2 & 3: keep the attribution (README/Footer/package.json) and ship
+  the `LICENSE` file in the package (added at repo root — verify it's present).
+- ⚠️ Condition 1 (non-compete) is the only judgment call: a *free, open-source*
+  port for a *different framework* is plausibly complementary rather than
+  competing, but "competes" is fuzzy. If you plan to monetize it or are unsure,
+  a courtesy heads-up to Benji Taylor (or a lawyer) removes the ambiguity.
+
+This is not legal advice. When in doubt, ask the upstream author or keep the
+package/repo private.
 
 ---
 
