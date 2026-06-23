@@ -231,12 +231,12 @@
   import { generateDesignOutput, generateRearrangeOutput } from "../design-mode/output.js";
   import { detectPageSections } from "../design-mode/section-detection.js";
   import {
-    DEFAULT_SIZES,
     type DesignPlacement,
-    type ComponentType as DesignComponentType,
     type RearrangeState,
     type CanvasPurpose,
   } from "../design-mode/types.js";
+  import { normalizeRegistry, sizeForKey, defaultVariantValues } from "../design-mode/registry.js";
+  import { builtinComponents } from "../design-mode/builtins.js";
 
   import {
     DEFAULT_SETTINGS,
@@ -262,7 +262,12 @@
     onSessionCreated,
     webhookUrl,
     className: userClassName,
+    components = builtinComponents,
+    wrapper,
   }: PageFeedbackToolbarCSSProps = $props();
+
+  // Normalized Layout Mode registry (sections for the palette + key lookup).
+  const designRegistry = $derived(normalizeRegistry(components));
 
   // ===========================================================================
   // State
@@ -305,7 +310,7 @@
   let isDesignMode = $state(false);
   let designOverlayExiting = $state(false);
   let designPlacements = $state<DesignPlacement[]>([]);
-  let activeDesignComponent = $state<DesignComponentType | null>(null);
+  let activeDesignComponent = $state<string | null>(null);
   let designPlacementsLoaded = false;
   let blankCanvas = $state(false);
   let canvasReady = $state(false);
@@ -1052,6 +1057,7 @@
           { width: window.innerWidth, height: window.innerHeight },
           { blankCanvas, wireframePurpose: wireframePurpose || undefined },
           settings.outputDetail,
+          designRegistry.byKey,
         );
     }
 
@@ -1096,6 +1102,7 @@
           { width: window.innerWidth, height: window.innerHeight },
           { blankCanvas, wireframePurpose: wireframePurpose || undefined },
           settings.outputDetail,
+          designRegistry.byKey,
         );
     }
     if (rearrangeState) {
@@ -2946,10 +2953,12 @@
         <!-- Layout Mode Palette -->
         <DesignPalette
           visible={isDesignMode && isActive}
-          activeType={activeDesignComponent}
-          onSelect={(type: DesignComponentType) => {
-            activeDesignComponent = activeDesignComponent === type ? null : type;
+          sections={designRegistry.sections}
+          activeKey={activeDesignComponent}
+          onSelect={(key: string) => {
+            activeDesignComponent = activeDesignComponent === key ? null : key;
           }}
+          {wrapper}
           {isDarkMode}
           sectionCount={rearrangeState?.sections.length ?? 0}
           onDetectSections={() => {
@@ -2990,9 +2999,9 @@
           {wireframePurpose}
           onWireframePurposeChange={(v: string) => (wireframePurpose = v)}
           Tooltip={HelpTooltip}
-          onDragStart={(type: DesignComponentType, e: MouseEvent) => {
+          onDragStart={(key: string, e: MouseEvent) => {
             e.preventDefault();
-            const def = DEFAULT_SIZES[type];
+            const def = sizeForKey(key);
             let preview: HTMLDivElement | null = null;
             let didDrag = false;
             const startX = e.clientX;
@@ -3023,7 +3032,7 @@
               preview.style.left = `${ev.clientX - w / 2}px`;
               preview.style.top = `${ev.clientY - h / 2}px`;
               preview.style.opacity = `${0.5 + 0.5 * eased}`;
-              preview.textContent = eased > 0.25 ? type : "";
+              preview.textContent = eased > 0.25 ? (designRegistry.byKey[key]?.label ?? key) : "";
             };
             const onUp = (ev: MouseEvent) => {
               window.removeEventListener("mousemove", onMove);
@@ -3037,7 +3046,8 @@
                 const y = Math.max(0, ev.clientY + sy - h / 2);
                 const placement: DesignPlacement = {
                   id: `dp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                  type,
+                  type: key,
+                  variantValues: defaultVariantValues(designRegistry.byKey[key] ?? { label: key }),
                   x,
                   y,
                   width: w,
@@ -3124,6 +3134,8 @@
         onChange={(p) => (designPlacements = p)}
         activeComponent={designOverlayExiting ? null : activeDesignComponent}
         onActiveComponentChange={(c) => (activeDesignComponent = c)}
+        byKey={designRegistry.byKey}
+        {wrapper}
         {isDarkMode}
         exiting={designOverlayExiting}
         onInteractionChange={(v) => (designInteracting = v)}

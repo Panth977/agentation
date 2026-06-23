@@ -33,6 +33,14 @@ export type {
   AnnotationPopupCSSHandle,
 } from "./components/annotation-popup-css/index.js";
 
+// Layout Mode component registry (developer-supplied component library).
+export { builtinComponents } from "./components/design-mode/builtins.js";
+export type {
+  AgentationComponentDef,
+  AgentationComponents,
+  VariantSpec,
+} from "./components/design-mode/registry.js";
+
 // Icons (pure SVG Svelte components).
 export * from "./components/icons/index.js";
 

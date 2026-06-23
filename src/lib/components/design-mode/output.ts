@@ -3,6 +3,11 @@
 // =============================================================================
 
 import { COMPONENT_MAP, type DesignPlacement, type RearrangeState } from "./types";
+import { formatVariants } from "./registry";
+
+/** Minimal registry metadata the output needs (key -> def). */
+export type OutputDefMeta = { label: string; src?: string; description?: string };
+export type OutputDefs = Record<string, OutputDefMeta>;
 import {
   getSpatialContext,
   formatSpatialLines,
@@ -79,8 +84,27 @@ export function generateDesignOutput(
   viewport: ViewportSize,
   options?: DesignOutputOptions,
   detailLevel: OutputDetailLevel = "standard",
+  defs: OutputDefs = {},
 ): string {
   if (placements.length === 0) return "";
+
+  // Resolve display metadata for a placement from the registry (fallback to the
+  // built-in map, then the raw key).
+  const lbl = (p: DesignPlacement) =>
+    defs[p.type]?.label ?? COMPONENT_MAP[p.type]?.label ?? p.type;
+  const lc = (p: DesignPlacement) => lbl(p).toLowerCase();
+  // Sub-lines describing a component instance (src, variants, purpose, note).
+  const metaLines = (c: DesignPlacement, indent: string): string => {
+    let s = "";
+    const src = defs[c.type]?.src;
+    const desc = defs[c.type]?.description;
+    const variants = formatVariants(c.variantValues);
+    if (src) s += `${indent}- src: \`${src}\`\n`;
+    if (variants) s += `${indent}- variants: ${variants}\n`;
+    if (desc) s += `${indent}- purpose: ${desc}\n`;
+    if (c.text) s += `${indent}- note: "${c.text}"\n`;
+    return s;
+  };
 
   // Sort by vertical then horizontal position
   const sorted = [...placements].sort((a, b) => {
@@ -103,8 +127,8 @@ export function generateDesignOutput(
   if (detailLevel === "compact") {
     out += "### Components\n";
     sorted.forEach((c, i) => {
-      const label = COMPONENT_MAP[c.type]?.label || c.type;
-      out += `${i + 1}. **${label}** — \`${Math.round(c.width)}×${Math.round(c.height)}px\` at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
+      out += `${i + 1}. **${lbl(c)}** at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
+      out += metaLines(c, "   ");
     });
     return out;
   }
@@ -116,10 +140,10 @@ export function generateDesignOutput(
   // --- Component list ---
   out += "### Components\n";
   sorted.forEach((c, i) => {
-    const label = COMPONENT_MAP[c.type]?.label || c.type;
     const rect = { x: c.x, y: c.y, width: c.width, height: c.height };
 
-    out += `${i + 1}. **${label}** — \`${Math.round(c.width)}×${Math.round(c.height)}px\` at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
+    out += `${i + 1}. **${lbl(c)}** at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
+    out += metaLines(c, "   ");
 
     // Spatial context
     const ctx = getSpatialContext(rect);
@@ -151,7 +175,7 @@ export function generateDesignOutput(
 
   rows.forEach((row, i) => {
     row.items.sort((a, b) => a.x - b.x);
-    const labels = row.items.map((c) => COMPONENT_MAP[c.type]?.label || c.type);
+    const labels = row.items.map((c) => lbl(c));
 
     if (row.items.length === 1) {
       const c = row.items[0];
@@ -168,8 +192,8 @@ export function generateDesignOutput(
     for (let i = 0; i < sorted.length - 1; i++) {
       const a = sorted[i];
       const b = sorted[i + 1];
-      const labelA = COMPONENT_MAP[a.type]?.label || a.type;
-      const labelB = COMPONENT_MAP[b.type]?.label || b.type;
+      const labelA = lbl(a);
+      const labelB = lbl(b);
       const vGap = Math.round(b.y - (a.y + a.height));
       const hGap = Math.round(b.x - (a.x + a.width));
       if (Math.abs(a.y - b.y) < 30) {
@@ -185,8 +209,8 @@ export function generateDesignOutput(
         for (let j = i + 1; j < sorted.length; j++) {
           const a = sorted[i];
           const b = sorted[j];
-          const labelA = COMPONENT_MAP[a.type]?.label || a.type;
-          const labelB = COMPONENT_MAP[b.type]?.label || b.type;
+          const labelA = lbl(a);
+          const labelB = lbl(b);
           const vGap = Math.round(b.y - (a.y + a.height));
           const hGap = Math.round(b.x - (a.x + a.width));
           out += `- ${labelA} ↔ ${labelB}: h=\`${hGap}px\` v=\`${vGap}px\`\n`;
@@ -197,8 +221,7 @@ export function generateDesignOutput(
     if (detailLevel === "forensic") {
       out += "\n### Z-Order (placement order)\n";
       placements.forEach((c, i) => {
-        const label = COMPONENT_MAP[c.type]?.label || c.type;
-        out += `${i}. ${label} at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
+        out += `${i}. ${lbl(c)} at \`(${Math.round(c.x)}, ${Math.round(c.y)})\`\n`;
       });
     }
   }
@@ -206,14 +229,14 @@ export function generateDesignOutput(
   // --- Suggested implementation ---
   out += "\n### Suggested Implementation\n";
 
-  const hasNav = sorted.some((c) => c.type === "navigation");
-  const hasHero = sorted.some((c) => c.type === "hero");
-  const hasSidebar = sorted.some((c) => c.type === "sidebar");
-  const hasFooter = sorted.some((c) => c.type === "footer");
-  const cards = sorted.filter((c) => c.type === "card");
-  const forms = sorted.filter((c) => c.type === "form");
-  const tables = sorted.filter((c) => c.type === "table");
-  const modals = sorted.filter((c) => c.type === "modal");
+  const hasNav = sorted.some((c) => lc(c) === "navigation");
+  const hasHero = sorted.some((c) => lc(c) === "hero");
+  const hasSidebar = sorted.some((c) => lc(c) === "sidebar");
+  const hasFooter = sorted.some((c) => lc(c) === "footer");
+  const cards = sorted.filter((c) => lc(c) === "card");
+  const forms = sorted.filter((c) => lc(c) === "form");
+  const tables = sorted.filter((c) => lc(c) === "table");
+  const modals = sorted.filter((c) => lc(c) === "modal");
 
   if (hasNav) out += "- Top navigation bar with logo + nav links + CTA\n";
   if (hasHero) out += "- Hero section with heading, subtext, and call-to-action\n";
@@ -228,7 +251,7 @@ export function generateDesignOutput(
   if (detailLevel === "detailed" || detailLevel === "forensic") {
     out += "\n### CSS Suggestions\n";
     if (hasSidebar) {
-      const sidebar = sorted.find((c) => c.type === "sidebar")!;
+      const sidebar = sorted.find((c) => lc(c) === "sidebar")!;
       out += `- \`display: grid; grid-template-columns: ${Math.round(sidebar.width)}px 1fr;\`\n`;
     }
     if (cards.length > 1) {

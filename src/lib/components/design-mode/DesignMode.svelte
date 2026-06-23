@@ -1,13 +1,20 @@
 <script lang="ts" module>
-  import type { ComponentType, DesignPlacement } from "./types.js";
+  import type { Snippet } from "svelte";
+  import type { DesignPlacement } from "./types.js";
+  import type { NormalizedDef } from "./registry.js";
 
   export type SnapRect = { x: number; y: number; width: number; height: number };
 
   export type DesignModeProps = {
     placements: DesignPlacement[];
     onChange: (placements: DesignPlacement[]) => void;
-    activeComponent: ComponentType | null;
-    onActiveComponentChange: (type: ComponentType | null) => void;
+    /** Active component KEY being placed (registry key), or null. */
+    activeComponent: string | null;
+    onActiveComponentChange: (key: string | null) => void;
+    /** Registry lookup: component key -> normalized def (for render + variants). */
+    byKey: Record<string, NormalizedDef>;
+    /** Optional provider/theme wrapper applied around rendered components. */
+    wrapper?: Snippet<[inner: Snippet]>;
     isDarkMode: boolean;
     exiting?: boolean;
     onInteractionChange?: (active: boolean) => void;
@@ -117,8 +124,9 @@
 
 <script lang="ts">
   import { untrack } from "svelte";
-  import { COMPONENT_MAP, DEFAULT_SIZES } from "./types.js";
-  import Skeleton from "./Skeleton.svelte";
+  import ComponentPreview from "./ComponentPreview.svelte";
+  import VariantInspector from "./VariantInspector.svelte";
+  import { sizeForKey, defaultVariantValues } from "./registry.js";
   import AnnotationPopupCSS from "../annotation-popup-css/AnnotationPopupCSS.svelte";
   import styles from "./styles.module.scss";
   import { originalSetTimeout } from "$lib/utils/freeze-animations.js";
@@ -128,6 +136,8 @@
     onChange,
     activeComponent,
     onActiveComponentChange,
+    byKey,
+    wrapper,
     isDarkMode,
     exiting,
     onInteractionChange,
@@ -297,7 +307,7 @@
         onInteractionChange?.(false);
 
         if (!activeComponent) return;
-        const def = DEFAULT_SIZES[activeComponent];
+        const size = sizeForKey(activeComponent);
         let x: number, y: number, w: number, h: number;
 
         if (isDrag) {
@@ -306,8 +316,8 @@
           w = Math.max(MIN_SIZE, Math.abs(endX - startX));
           h = Math.max(MIN_SIZE, Math.abs(endY - startY));
         } else {
-          w = def.width;
-          h = def.height;
+          w = size.width;
+          h = size.height;
           x = startX - w / 2;
           y = startY + scrollY - h / 2;
         }
@@ -324,6 +334,7 @@
           height: h,
           scrollY,
           timestamp: Date.now(),
+          variantValues: defaultVariantValues(byKey[activeComponent] ?? { label: activeComponent }),
         };
 
         const next = [...placements, placement];
@@ -605,7 +616,7 @@
   }
 
   // --- Double-click: edit text ---
-  const TEXT_PLACEHOLDERS: Partial<Record<ComponentType, string>> = {
+  const TEXT_PLACEHOLDERS: Record<string, string> = {
     hero: "Headline text",
     button: "Button label",
     badge: "Badge label",
@@ -697,6 +708,28 @@
     }
     return { ep, style };
   });
+
+  // --- Variant inspector for a single selected placement ---
+  function setVariantValues(id: string, values: Record<string, unknown>) {
+    onChange(placements.map((p) => (p.id === id ? { ...p, variantValues: values } : p)));
+  }
+
+  let variantPanel = $derived.by(() => {
+    if (selectedIds.size !== 1 || editingId) return null;
+    const id = [...selectedIds][0];
+    const p = placements.find((pl) => pl.id === id);
+    if (!p) return null;
+    const def = byKey[p.type];
+    if (!def || !def.variants || Object.keys(def.variants).length === 0) return null;
+    const ey = p.y - scrollY;
+    const left = Math.max(150, Math.min(window.innerWidth - 150, p.x + p.width / 2));
+    const belowY = ey + p.height + 10;
+    const fitsBelow = belowY < window.innerHeight - 160;
+    const style = fitsBelow
+      ? `left: ${left}px; top: ${belowY}px; transform: translateX(-50%);`
+      : `left: ${left}px; bottom: ${window.innerHeight - (ey - 10)}px; transform: translateX(-50%);`;
+    return { id, def, values: p.variantValues ?? {}, style };
+  });
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -708,7 +741,8 @@
   <!-- Placed components -->
   {#each placements as p (p.id)}
     {@const isSelected = selectedIds.has(p.id)}
-    {@const label = COMPONENT_MAP[p.type]?.label || p.type}
+    {@const def = byKey[p.type]}
+    {@const label = def?.label || p.type}
     {@const screenY = p.y - scrollY}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
@@ -721,7 +755,9 @@
       <span class={styles.placementLabel}>{label}</span>
       <span class={`${styles.placementAnnotation} ${p.text ? styles.annotationVisible : ""}`}>{annotationText(p)}</span>
       <div class={styles.placementContent}>
-        <Skeleton type={p.type} width={p.width} height={p.height} text={p.text} />
+        {#if def}
+          <ComponentPreview {def} values={p.variantValues ?? {}} mode="canvas" {wrapper} />
+        {/if}
       </div>
 
       <!-- Delete button -->
@@ -767,7 +803,7 @@
 <!-- Text editing popup (uses annotation popup) -->
 {#if editPopup}
   <AnnotationPopupCSS
-    element={COMPONENT_MAP[editPopup.ep.type]?.label || editPopup.ep.type}
+    element={byKey[editPopup.ep.type]?.label || editPopup.ep.type}
     placeholder={TEXT_PLACEHOLDERS[editPopup.ep.type] || "Label or content text"}
     initialValue={editPopup.ep.text ?? ""}
     submitLabel={editHadText ? "Save" : "Set"}
@@ -778,6 +814,18 @@
     lightMode={!isDarkMode}
     style={editPopup.style}
   />
+{/if}
+
+<!-- Variant inspector for a single selected placement -->
+{#if variantPanel}
+  <div class={styles.variantPanelAnchor} style={variantPanel.style}>
+    <VariantInspector
+      def={variantPanel.def}
+      values={variantPanel.values}
+      {isDarkMode}
+      onChange={(v) => setVariantValues(variantPanel.id, v)}
+    />
+  </div>
 {/if}
 
 <!-- Draw box (drag-to-place preview) -->

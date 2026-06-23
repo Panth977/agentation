@@ -4,7 +4,9 @@
 // Extracted from the React toolbar so framework-agnostic utils (e.g.
 // generate-output) can import these without depending on the .svelte component.
 
+import type { Snippet } from "svelte";
 import type { Annotation } from "../../types.js";
+import type { AgentationComponents } from "../design-mode/registry.js";
 
 export type OutputDetailLevel = "compact" | "standard" | "detailed" | "forensic";
 
@@ -101,6 +103,13 @@ export type PageFeedbackToolbarCSSProps = {
   webhookUrl?: string;
   /** Custom class name applied to the toolbar container. Use to adjust positioning or z-index. */
   className?: string;
+  /**
+   * Layout Mode component registry (the developer's own UI library). Flat array
+   * or grouped object. Defaults to the built-in 64 generic wireframe components.
+   */
+  components?: AgentationComponents;
+  /** Provider/theme wrapper applied around every Layout Mode component render. */
+  wrapper?: Snippet<[inner: Snippet]>;
 };
 
 /** Alias for PageFeedbackToolbarCSSProps */

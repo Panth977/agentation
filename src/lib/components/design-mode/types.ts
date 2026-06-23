@@ -72,7 +72,8 @@ export type ComponentType =
 
 export type DesignPlacement = {
   id: string;
-  type: ComponentType;
+  /** Registry component key (a built-in ComponentType, or a developer key). */
+  type: string;
   x: number;
   y: number;
   width: number;
@@ -80,6 +81,8 @@ export type DesignPlacement = {
   scrollY: number;
   timestamp: number;
   text?: string;
+  /** Chosen variant values for this placed instance. */
+  variantValues?: Record<string, unknown>;
 };
 
 export type ComponentDefinition = {

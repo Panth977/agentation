@@ -1684,3 +1684,133 @@ $red: #ef4444;
 }
 
 
+
+// =============================================================================
+// Variant inspector (registry Layout Mode)
+// =============================================================================
+.variantPanelAnchor {
+  position: fixed;
+  z-index: 100030;
+}
+.variantInspector {
+  min-width: 200px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #2a2a2a;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+
+  &.light {
+    background: #fff;
+    color: #1a1a1a;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+}
+.variantTitle {
+  font-weight: 600;
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+.variantRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.variantLabel {
+  opacity: 0.6;
+  text-transform: capitalize;
+  flex: none;
+}
+.variantControl {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.variantSegmented {
+  display: inline-flex;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px;
+  gap: 2px;
+  flex-wrap: wrap;
+
+  .light & {
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+.variantSeg {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &.variantSegActive {
+    background: var(--agentation-color-accent, #3c82f7);
+    color: #fff;
+    opacity: 1;
+  }
+}
+.variantNumber {
+  width: 120px;
+}
+.variantText {
+  width: 140px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 4px 6px;
+  font-size: 11px;
+
+  .light & {
+    border-color: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+// Palette search (registry Layout Mode)
+.paletteSearch {
+  padding: 0 12px 8px;
+}
+.paletteSearchInput {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 6px 10px;
+  font-size: 12px;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .light & {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.03);
+
+    &::placeholder {
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+.paletteEmpty {
+  padding: 16px 12px;
+  font-size: 12px;
+  opacity: 0.5;
+  text-align: center;
+}

@@ -2,6 +2,9 @@
   import { Agentation } from "$lib/index.js";
   import Footer from "./Footer.svelte";
   let { children } = $props();
+  // To try a custom component registry instead of the built-ins, import
+  // `demoRegistry` from "./_demo/registry.js" and pass `components={demoRegistry}`
+  // to <Agentation/> below. (See docs/LAYOUT_MODE_REGISTRY.md.)
 </script>
 
 <header class="site-header">

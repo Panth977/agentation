@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component, Snippet } from "svelte";
-  import { type ComponentType } from "./types.js";
+  import type { NormalizedSection } from "./registry.js";
   import { originalRequestAnimationFrame, originalSetTimeout } from "$lib/utils/freeze-animations.js";
   import styles from "./styles.module.scss";
   import ComponentGrid from "./ComponentGrid.svelte";
@@ -14,8 +14,9 @@
   }
 
   type Props = {
-    activeType: ComponentType | null;
-    onSelect: (type: ComponentType) => void;
+    sections: NormalizedSection[];
+    activeKey: string | null;
+    onSelect: (key: string) => void;
     isDarkMode: boolean;
     //
     sectionCount: number;
@@ -24,16 +25,18 @@
     onExited?: () => void;
     placementCount: number;
     onClearPlacements: () => void;
-    onDragStart: (type: ComponentType, e: MouseEvent) => void;
+    onDragStart: (key: string, e: MouseEvent) => void;
     blankCanvas: boolean;
     onBlankCanvasChange: (on: boolean) => void;
     wireframePurpose: string;
     onWireframePurposeChange: (purpose: string) => void;
     Tooltip?: Component<{ content: string; children: Snippet }>;
+    wrapper?: Snippet<[inner: Snippet]>;
   };
 
   let {
-    activeType,
+    sections,
+    activeKey,
     onSelect,
     isDarkMode,
     sectionCount,
@@ -48,6 +51,7 @@
     wireframePurpose,
     onWireframePurposeChange,
     Tooltip,
+    wrapper,
   }: Props = $props();
 
   let mounted = $state(false);
@@ -210,12 +214,14 @@
 
     <!-- Component grid — always visible -->
     <ComponentGrid
-      {activeType}
+      {sections}
+      {activeKey}
       {onSelect}
       {onDragStart}
       bind:scrollRef={placeScrollEl}
       fadeClass={placeFade}
       {blankCanvas}
+      {wrapper}
     />
 
     <!-- Footer: change count + clear -->
