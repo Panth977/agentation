@@ -95,6 +95,26 @@
     };
   });
 
+  // Persistent focus-trap guard. focusBypassingTraps() only blocks third-party
+  // focus-trap libraries (Radix FocusScope, focus-trap, etc.) during the
+  // programmatic .focus() call. When a client modal is open, the trap also
+  // reclaims focus on USER interactions (clicking/tabbing into our textarea) —
+  // a fresh focusin the helper doesn't cover, so the field can't hold focus.
+  // While the popup is mounted, stop those events at capture phase whenever the
+  // target is inside the popup, so the client trap never yanks focus back.
+  $effect(() => {
+    const guard = (e: Event) => {
+      const t = e.target as Node | null;
+      if (popupEl && t && popupEl.contains(t)) e.stopImmediatePropagation();
+    };
+    document.addEventListener("focusin", guard, true);
+    document.addEventListener("focusout", guard, true);
+    return () => {
+      document.removeEventListener("focusin", guard, true);
+      document.removeEventListener("focusout", guard, true);
+    };
+  });
+
   // ===========================================================================
   // Imperative handle (exposed via bind:this)
   // ===========================================================================
