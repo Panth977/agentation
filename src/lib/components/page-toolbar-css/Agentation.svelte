@@ -235,7 +235,7 @@
     type RearrangeState,
     type CanvasPurpose,
   } from "../design-mode/types.js";
-  import { normalizeRegistry, sizeForKey, defaultVariantValues } from "../design-mode/registry.js";
+  import { normalizeRegistry, sizeForKey, defaultVariantValues, initialSize } from "../design-mode/registry.js";
   import { builtinComponents } from "../design-mode/builtins.js";
 
   import {
@@ -3039,8 +3039,10 @@
               window.removeEventListener("mouseup", onUp);
               if (preview) document.body.removeChild(preview);
               if (didDrag) {
-                const w = def.width;
-                const h = def.height;
+                // Intrinsic axes → natural measured size; fluid axes → fluid default.
+                const sized = initialSize(designRegistry.byKey[key] ?? { label: key }, def);
+                const w = sized.width;
+                const h = sized.height;
                 const sy = window.scrollY;
                 const x = Math.max(0, ev.clientX - w / 2);
                 const y = Math.max(0, ev.clientY + sy - h / 2);

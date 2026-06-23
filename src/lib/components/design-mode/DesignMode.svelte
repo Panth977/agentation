@@ -126,7 +126,7 @@
   import { untrack } from "svelte";
   import ComponentPreview from "./ComponentPreview.svelte";
   import VariantInspector from "./VariantInspector.svelte";
-  import { sizeForKey, defaultVariantValues } from "./registry.js";
+  import { sizeForKey, defaultVariantValues, initialSize, resolveSizing } from "./registry.js";
   import AnnotationPopupCSS from "../annotation-popup-css/AnnotationPopupCSS.svelte";
   import styles from "./styles.module.scss";
   import { originalSetTimeout } from "$lib/utils/freeze-animations.js";
@@ -307,7 +307,10 @@
         onInteractionChange?.(false);
 
         if (!activeComponent) return;
-        const size = sizeForKey(activeComponent);
+        const size = initialSize(
+          byKey[activeComponent] ?? { label: activeComponent },
+          sizeForKey(activeComponent),
+        );
         let x: number, y: number, w: number, h: number;
 
         if (isDrag) {
@@ -744,6 +747,9 @@
     {@const def = byKey[p.type]}
     {@const label = def?.label || p.type}
     {@const screenY = p.y - scrollY}
+    {@const sz = resolveSizing(def ?? { label: p.type })}
+    {@const resizableW = sz.width === "fluid"}
+    {@const resizableH = sz.height === "fluid"}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       data-design-placement={p.id}
@@ -770,16 +776,19 @@
         ✕
       </div>
 
-      <!-- Corner resize handles -->
-      {#each cornerHandles as dir (dir)}
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class={`${styles.handle} ${handleClass(dir)}`}
-          onmousedown={(e) => handleResizeMouseDown(e, p.id, dir)}
-        ></div>
-      {/each}
-      <!-- Edge resize bars -->
+      <!-- Corner resize handles — only when BOTH axes are fluid -->
+      {#if resizableW && resizableH}
+        {#each cornerHandles as dir (dir)}
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div
+            class={`${styles.handle} ${handleClass(dir)}`}
+            onmousedown={(e) => handleResizeMouseDown(e, p.id, dir)}
+          ></div>
+        {/each}
+      {/if}
+      <!-- Edge resize bars — n/s gated on fluid height, e/w on fluid width -->
       {#each edgeHandles as { dir, cls } (dir)}
+        {#if dir === "n" || dir === "s" ? resizableH : resizableW}
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           class={`${styles.edgeHandle} ${cls}`}
@@ -795,6 +804,7 @@
             <svg width="6" height="8" viewBox="0 0 6 8" fill="none"><path d="M0.5 4L4.5 1v6z" fill={arrowColor} /></svg>
           {/if}
         </div>
+        {/if}
       {/each}
     </div>
   {/each}

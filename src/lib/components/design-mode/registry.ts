@@ -13,6 +13,19 @@ export type VariantSpec =
   | { type: "number"; min?: number; max?: number; step?: number; default?: number }
   | { type: "text"; default?: string };
 
+/**
+ * How a component sizes on the canvas, per axis:
+ *  - "intrinsic" (default): the component defines its own size on that axis. It
+ *    renders at its natural measured size and the axis is LOCKED — no resize
+ *    handle (e.g. a DatePicker, Button, Badge whose width/height come from the
+ *    component itself).
+ *  - "fluid": the component fills the placement box on that axis and IS
+ *    resizable (e.g. a Navbar's width, a Card or Grid). Fluid axes start at
+ *    `defaultSize` (or a sensible default) since there's no natural size.
+ */
+export type AxisSizing = "intrinsic" | "fluid";
+export type AgentationSizing = AxisSizing | { width?: AxisSizing; height?: AxisSizing };
+
 export type AgentationComponentDef = {
   /** Display name in the palette + registry key (should be unique). */
   label: string;
@@ -37,6 +50,15 @@ export type AgentationComponentDef = {
   toProps?: (values: Record<string, unknown>) => Record<string, unknown>;
   /** Escape hatch: full render control (children/context). Used instead of `component`. */
   preview?: Snippet<[values: Record<string, unknown>]>;
+  /**
+   * Canvas sizing behaviour. Default: "intrinsic" on both axes (the component
+   * sizes itself; the axis is locked / not resizable). Use "fluid" — or a
+   * per-axis object like `{ width: "fluid", height: "intrinsic" }` for a navbar —
+   * to let the component fill (and be resized within) the placement box.
+   */
+  sizing?: AgentationSizing;
+  /** Initial px size for FLUID axes only (intrinsic axes are auto-measured). */
+  defaultSize?: { width?: number; height?: number };
 };
 
 export type AgentationComponents =
@@ -156,4 +178,39 @@ export function setMeasuredSize(key: string, size: { width: number; height: numb
 export function sizeForKey(key: string | null | undefined): { width: number; height: number } {
   if (key && _measured.has(key)) return _measured.get(key)!;
   return FALLBACK_SIZE;
+}
+
+// -----------------------------------------------------------------------------
+// Sizing model (intrinsic vs fluid)
+// -----------------------------------------------------------------------------
+
+/** Sensible starting box for fluid axes that have no natural size. */
+export const FLUID_DEFAULT = { width: 800, height: 140 };
+
+/** Resolve a def's sizing to an explicit per-axis pair (default: intrinsic). */
+export function resolveSizing(def: AgentationComponentDef): { width: AxisSizing; height: AxisSizing } {
+  const s = def.sizing;
+  if (s === "fluid") return { width: "fluid", height: "fluid" };
+  if (s == null || s === "intrinsic") return { width: "intrinsic", height: "intrinsic" };
+  return { width: s.width ?? "intrinsic", height: s.height ?? "intrinsic" };
+}
+
+/**
+ * Initial canvas box for a placement: intrinsic axes use the measured natural
+ * size; fluid axes use `defaultSize` (or FLUID_DEFAULT) since they have none.
+ */
+export function initialSize(
+  def: AgentationComponentDef,
+  measured: { width: number; height: number },
+): { width: number; height: number } {
+  const sz = resolveSizing(def);
+  const w =
+    sz.width === "fluid"
+      ? (def.defaultSize?.width ?? FLUID_DEFAULT.width)
+      : measured.width || FALLBACK_SIZE.width;
+  const h =
+    sz.height === "fluid"
+      ? (def.defaultSize?.height ?? FLUID_DEFAULT.height)
+      : measured.height || FALLBACK_SIZE.height;
+  return { width: Math.max(8, Math.round(w)), height: Math.max(8, Math.round(h)) };
 }

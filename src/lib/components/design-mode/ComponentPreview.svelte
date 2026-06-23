@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { Component, Snippet } from "svelte";
-  import { resolveProps, setMeasuredSize, type NormalizedDef } from "./registry.js";
+  import { resolveProps, setMeasuredSize, resolveSizing, type NormalizedDef } from "./registry.js";
 
   type Props = {
     def: NormalizedDef;
     values?: Record<string, unknown>;
-    /** "tile" = scale down into a small palette icon; "canvas" = render at size. */
+    /** "tile" = scale down into a palette thumbnail; "canvas" = render at size. */
     mode?: "tile" | "canvas";
     /** Optional provider/theme wrapper applied around the rendered component. */
     wrapper?: Snippet<[inner: Snippet]>;
@@ -13,10 +13,10 @@
 
   let { def, values = {}, mode = "tile", wrapper }: Props = $props();
 
-  // NOTE: do NOT name a local `props` — it collides with svelte2tsx's internal
-  // generated identifier and breaks type-checking of the $props() destructure.
+  // NOTE: do NOT name a local `props` — it collides with svelte2tsx internals.
   const resolved = $derived(resolveProps(def, values));
   const Cmp = $derived(def.component as Component<Record<string, any>> | undefined);
+  const sizing = $derived(resolveSizing(def));
 
   let box = $state<HTMLDivElement | undefined>(undefined);
   let content = $state<HTMLDivElement | undefined>(undefined);
@@ -24,9 +24,12 @@
   let natH = $state(0);
   let scale = $state(1);
 
+  // Measure the component's natural (unscaled) size — only in tile mode, where
+  // content is laid out at max-content. This feeds sizeForKey() so intrinsic
+  // placements open at the component's real size. (Canvas mode fills the box for
+  // fluid axes, so its layout size isn't a useful natural measurement.)
   function measure() {
-    if (!content) return;
-    // offsetWidth/Height report the UNSCALED layout size (transform is visual only).
+    if (mode !== "tile" || !content) return;
     const w = content.offsetWidth;
     const h = content.offsetHeight;
     if (w > 0 && h > 0 && (w !== natW || h !== natH)) {
@@ -37,6 +40,7 @@
   }
 
   $effect(() => {
+    if (mode !== "tile") return;
     measure();
     if (!content) return;
     const ro = new ResizeObserver(measure);
@@ -44,15 +48,21 @@
     return () => ro.disconnect();
   });
 
-  // Fit the natural content into the box.
+  // Tile: scale the natural content down to fit the thumbnail box.
   $effect(() => {
     void [natW, natH, mode];
-    if (!box || !natW || !natH) return;
+    if (mode !== "tile" || !box || !natW || !natH) return;
     const bw = box.clientWidth || 1;
     const bh = box.clientHeight || 1;
-    const fit = Math.min(bw / natW, bh / natH);
-    scale = Math.min(fit, 1);
+    scale = Math.min(Math.min(bw / natW, bh / natH), 1);
   });
+
+  // Inline style for the content wrapper.
+  const contentStyle = $derived(
+    mode === "tile"
+      ? `width: max-content; transform: scale(${scale}); transform-origin: center center;`
+      : `width: ${sizing.width === "fluid" ? "100%" : "max-content"}; height: ${sizing.height === "fluid" ? "100%" : "auto"};`,
+  );
 </script>
 
 {#snippet body()}
@@ -65,12 +75,7 @@
 
 <div bind:this={box} class="agd-preview" data-mode={mode}>
   <!-- inert + pointer-events:none: previews are visual only -->
-  <div
-    bind:this={content}
-    class="agd-preview-content"
-    inert
-    style={`transform: scale(${scale}); transform-origin: ${mode === "tile" ? "center center" : "top left"};`}
-  >
+  <div bind:this={content} class="agd-preview-content" inert style={contentStyle}>
     {#if wrapper}{@render wrapper(body)}{:else}{@render body()}{/if}
   </div>
 </div>
@@ -87,12 +92,14 @@
     pointer-events: none;
   }
   .agd-preview[data-mode="canvas"] {
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: stretch;
+    justify-content: stretch;
   }
   .agd-preview-content {
-    width: max-content;
-    max-width: 1000px;
+    max-width: 1200px;
     flex: none;
+  }
+  .agd-preview[data-mode="canvas"] .agd-preview-content {
+    max-width: none;
   }
 </style>
