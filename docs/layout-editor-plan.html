@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agentation · Layout Editor v2 — Plan & Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0a0c11; --bg2:#0e1118; --surface:#12161f; --surface2:#161b26;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --ink:#e7ebf2; --muted:#9aa3b5; --faint:#646d80;
+    --accent:#4c8dff; --accent-ink:#0a0c11;
+    --lime:#bef264; --orange:#ff9a3d;
+    --r:14px;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;
+    --disp:"Bricolage Grotesque","IBM Plex Sans",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0);
+    background-size:26px 26px;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  h1,h2,h3{font-family:var(--disp); font-weight:700; letter-spacing:-.02em; line-height:1.05; margin:0}
+  ::selection{background:var(--accent); color:var(--accent-ink)}
+
+  /* top bar */
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+    background:rgba(10,12,17,.78); border-bottom:1px solid var(--line);
+  }
+  .top .wrap{display:flex; align-items:center; gap:20px; height:60px}
+  .brand{font-family:var(--disp); font-weight:800; letter-spacing:-.02em; font-size:16px; display:flex; align-items:center; gap:9px}
+  .diamond{width:13px; height:13px; background:var(--accent); transform:rotate(45deg); box-shadow:0 0 16px var(--accent)}
+  .top nav{margin-left:auto; display:flex; gap:22px; font-size:13.5px}
+  .top nav a{color:var(--muted)} .top nav a:hover{color:var(--ink); text-decoration:none}
+  .pill{font-family:var(--mono); font-size:11px; letter-spacing:.04em; padding:5px 10px; border-radius:999px;
+        border:1px solid var(--line2); color:var(--lime); display:inline-flex; align-items:center; gap:7px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+
+  /* hero */
+  .hero{padding:96px 0 70px; border-bottom:1px solid var(--line); position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; inset:0;
+    background:radial-gradient(900px 380px at 78% -8%, rgba(76,141,255,.20), transparent 60%),
+               radial-gradient(700px 300px at 8% 120%, rgba(190,242,100,.10), transparent 60%);
+    pointer-events:none}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:var(--accent); margin-bottom:22px}
+  .hero h1{font-size:clamp(40px,7vw,82px); max-width:14ch}
+  .hero h1 em{font-style:normal; color:var(--accent); -webkit-text-stroke:0}
+  .hero .lede{font-size:clamp(17px,2vw,21px); color:var(--muted); max-width:60ch; margin-top:26px}
+  .hero .lede b{color:var(--ink); font-weight:600}
+  .reveal{opacity:0; transform:translateY(14px); animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1; transform:none}}
+
+  /* sections */
+  section{padding:78px 0; border-bottom:1px solid var(--line)}
+  .shead{display:flex; align-items:baseline; gap:18px; margin-bottom:34px}
+  .snum{font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:.1em; padding-top:6px}
+  .shead h2{font-size:clamp(26px,4vw,40px)}
+  .shead p{color:var(--muted); margin:8px 0 0; max-width:62ch}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+  @media(max-width:780px){.grid2{grid-template-columns:1fr}}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:22px}
+  .card h3{font-size:18px; margin-bottom:8px}
+  .card p{color:var(--muted); margin:0; font-size:14.5px}
+  .tag{font-family:var(--mono); font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.12em}
+  .bad{color:var(--orange)} .good{color:var(--lime)}
+
+  /* before/after */
+  .ba{display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center}
+  @media(max-width:780px){.ba{grid-template-columns:1fr; }}
+  .ba .arrow{font-family:var(--mono); color:var(--accent); font-size:24px; text-align:center}
+  pre, code{font-family:var(--mono)}
+  pre.code{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+    font-size:12.5px; line-height:1.7; overflow:auto; color:#cdd6e6; margin:0}
+  pre.code .t{color:var(--accent)} pre.code .a{color:var(--lime)} pre.code .v{color:#ffd479} pre.code .c{color:var(--faint)}
+
+  /* SANDBOX */
+  .sandbox{border:1px solid var(--line2); border-radius:16px; overflow:hidden; background:var(--surface);
+    box-shadow:0 30px 80px -40px rgba(0,0,0,.8)}
+  .sb-bar{display:flex; align-items:center; gap:8px; padding:11px 14px; border-bottom:1px solid var(--line); background:var(--surface2)}
+  .sb-bar .lights{display:flex; gap:6px} .sb-bar .lights i{width:10px;height:10px;border-radius:50%;display:block}
+  .sb-bar .lights i:nth-child(1){background:#ff5f57}.sb-bar .lights i:nth-child(2){background:#febc2e}.sb-bar .lights i:nth-child(3){background:#28c840}
+  .sb-title{font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:6px}
+  .sb-hint{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--faint)}
+  .editor{display:grid; grid-template-columns:200px 1fr 232px; min-height:440px}
+  @media(max-width:880px){.editor{grid-template-columns:1fr; }}
+  .panel{border-right:1px solid var(--line); display:flex; flex-direction:column; min-width:0}
+  .panel:last-child{border-right:0}
+  .panel-h{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint);
+    padding:10px 13px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px}
+  .panel-h .sub{margin-left:auto; color:var(--accent); cursor:pointer}
+  .panel-body{padding:10px; overflow:auto; flex:1}
+
+  /* palette */
+  .pal-item{display:flex; align-items:center; gap:9px; width:100%; text-align:left; cursor:pointer;
+    background:var(--bg2); border:1px solid var(--line); color:var(--ink); border-radius:9px; padding:8px 10px; margin-bottom:7px; font-size:13px; font-family:var(--sans)}
+  .pal-item:hover{border-color:var(--accent); background:#101626}
+  .pal-item .glyph{width:26px;height:18px;border-radius:4px;border:1px dashed var(--line2); display:grid; place-items:center; color:var(--faint); font-size:10px; flex:none}
+
+  /* layers */
+  .layer{display:flex; align-items:center; gap:7px; padding:5px 8px; border-radius:7px; cursor:pointer; font-size:12.5px; color:var(--muted); white-space:nowrap}
+  .layer:hover{background:var(--bg2)}
+  .layer.sel{background:rgba(76,141,255,.16); color:var(--ink); outline:1px solid rgba(76,141,255,.4)}
+  .layer .ic{font-family:var(--mono); font-size:10px; color:var(--faint); width:14px; text-align:center}
+  .layer.frame .ic{color:var(--accent)}
+
+  /* canvas */
+  .canvas-wrap{background:
+      repeating-linear-gradient(0deg, transparent 0 25px, rgba(255,255,255,.025) 25px 26px),
+      repeating-linear-gradient(90deg, transparent 0 25px, rgba(255,255,255,.025) 25px 26px),
+      var(--bg);
+    padding:22px; overflow:auto}
+  .le-frame{min-height:30px; border:1px dashed rgba(255,255,255,.14); border-radius:8px; padding:10px; position:relative}
+  .le-frame.root{border-style:solid; border-color:var(--line2); background:rgba(255,255,255,.015)}
+  .le-frame.empty{min-height:54px; display:flex!important; align-items:center; justify-content:center}
+  .le-frame.empty::after{content:"empty frame — add or drop here"; color:var(--faint); font-size:11px; font-family:var(--mono)}
+  .le-frame.sel{outline:2px solid var(--accent); outline-offset:1px; border-color:transparent}
+  .le-comp{background:linear-gradient(180deg,#1b2230,#151a25); border:1px solid var(--line2); border-radius:8px;
+    padding:9px 11px; font-size:12.5px; display:flex; align-items:center; gap:8px; cursor:pointer; min-width:54px}
+  .le-comp.sel{outline:2px solid var(--accent); outline-offset:1px}
+  .le-comp .nm{font-weight:600}
+  .le-chip{font-family:var(--mono); font-size:10px; color:var(--accent-ink); background:var(--accent); border-radius:5px; padding:1px 5px}
+  .le-note{margin-left:2px; color:var(--lime)}
+
+  /* inspector */
+  .insp label{display:block; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); margin:14px 0 7px}
+  .insp .seg{display:flex; gap:4px}
+  .insp .seg button, .mini{font-family:var(--sans); font-size:12px; color:var(--muted); background:var(--bg2); border:1px solid var(--line); border-radius:7px; padding:6px 9px; cursor:pointer; flex:1; text-align:center}
+  .insp .seg button.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600}
+  .insp .seg button:hover:not(.on){border-color:var(--line2); color:var(--ink)}
+  .insp input[type=range]{width:100%; accent-color:var(--accent)}
+  .insp textarea{width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:8px; font-family:var(--sans); font-size:12.5px; resize:vertical; min-height:54px}
+  .insp .empty{color:var(--faint); font-size:12.5px; font-family:var(--mono); padding-top:8px}
+  .insp .row{display:flex; gap:6px; align-items:center}
+  .insp .meta{font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:4px; word-break:break-all}
+
+  .sb-actions{display:flex; gap:8px; padding:11px 14px; border-top:1px solid var(--line); background:var(--surface2); flex-wrap:wrap}
+  .btn{font-family:var(--sans); font-size:12.5px; font-weight:600; border-radius:9px; padding:8px 13px; cursor:pointer; border:1px solid var(--line2); background:var(--bg2); color:var(--ink)}
+  .btn:hover{border-color:var(--accent)}
+  .btn.pri{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+  .btn.ghost{color:var(--muted)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+
+  .xmlout{margin-top:18px}
+  .xmlout .panel-h{border:1px solid var(--line); border-bottom:0; border-radius:12px 12px 0 0; background:var(--surface2)}
+  .xmlout pre{border-radius:0 0 12px 12px; margin:0; max-height:300px}
+
+  /* flow / roadmap */
+  .flow{display:flex; flex-direction:column; gap:0}
+  .phase{display:grid; grid-template-columns:120px 1fr; gap:20px; padding:20px 0; border-top:1px solid var(--line); cursor:pointer; transition:.2s}
+  .phase:hover{background:rgba(255,255,255,.02)}
+  .phase .when{font-family:var(--mono); font-size:12px; color:var(--faint); display:flex; flex-direction:column; gap:8px}
+  .phase .st{display:inline-flex; align-items:center; gap:7px; font-size:11px; padding:3px 9px; border-radius:999px; border:1px solid var(--line2); width:max-content}
+  .st.done{color:var(--lime); border-color:rgba(190,242,100,.3)}
+  .st.next{color:var(--accent); border-color:rgba(76,141,255,.35)}
+  .st.todo{color:var(--faint)}
+  .phase h3{font-size:19px; margin-bottom:6px}
+  .phase .det{color:var(--muted); font-size:14px; max-height:0; overflow:hidden; transition:max-height .35s ease, margin .3s; }
+  .phase.open .det{max-height:340px; margin-top:12px}
+  .phase .modules{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+  .mod{font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--bg2); border:1px solid var(--line); border-radius:6px; padding:3px 8px}
+  .chev{color:var(--faint); font-family:var(--mono); transition:transform .3s} .phase.open .chev{transform:rotate(90deg)}
+
+  footer{padding:54px 0 80px; color:var(--faint); font-size:13px}
+  footer .wrap{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap}
+  .lime-link{color:var(--lime)}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="diamond"></span> Agentation</div>
+    <nav>
+      <a href="#shift">The shift</a>
+      <a href="#model">Model</a>
+      <a href="#editor">Editor</a>
+      <a href="#flow">Execution</a>
+    </nav>
+    <span class="pill"><span class="dot"></span> Layout Editor v2</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow reveal" style="animation-delay:.05s">Design &amp; execution plan · interactive</div>
+    <h1 class="reveal" style="animation-delay:.12s">Layout Mode, rebuilt as a <em>semantic</em> editor.</h1>
+    <p class="lede reveal" style="animation-delay:.22s">
+      Stop placing boxes at x/y. Compose a <b>tree of frames</b> with stacking &amp; alignment —
+      it renders like Figma, and serializes to <b>XML the agent can turn into real code</b>.
+      Everything below is live: <b>try the editor</b>, read the plan, validate the flow.
+    </p>
+  </div>
+</div>
+
+<!-- 01 SHIFT -->
+<section id="shift">
+  <div class="wrap">
+    <div class="shead"><span class="snum">01</span><div><h2>The shift</h2>
+      <p>The old Layout Mode stored absolute coordinates — useless to an agent. v2 stores <i>intent</i>: what stacks, how it aligns, what each component is and is for.</p></div></div>
+    <div class="ba">
+      <div class="card">
+        <div class="tag bad">Before — coordinates</div>
+        <pre class="code" style="margin-top:12px"><span class="c">// a flat list of boxes</span>
+{ type:<span class="v">"button"</span>, <span class="a">x</span>:120, <span class="a">y</span>:340, w:140, h:40 }
+{ type:<span class="v">"card"</span>,   <span class="a">x</span>:80,  <span class="a">y</span>:420, w:280, h:240 }</pre>
+        <p style="margin-top:12px">Agent guess: <i>“…a button somewhere near a card?”</i></p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="card" style="border-color:rgba(76,141,255,.4)">
+        <div class="tag good">After — semantic tree → XML</div>
+        <pre class="code" style="margin-top:12px"><span class="t">&lt;row</span> <span class="a">justify</span>=<span class="v">"between"</span> <span class="a">align</span>=<span class="v">"center"</span><span class="t">&gt;</span>
+  <span class="t">&lt;component</span> <span class="a">name</span>=<span class="v">"Logo"</span> <span class="a">src</span>=<span class="v">"@ui"</span><span class="t">/&gt;</span>
+  <span class="t">&lt;component</span> <span class="a">name</span>=<span class="v">"Button"</span> <span class="a">src</span>=<span class="v">"@ui"</span><span class="t">&gt;</span>
+    <span class="t">&lt;prop</span> <span class="a">name</span>=<span class="v">"intent"</span> <span class="a">value</span>=<span class="v">"primary"</span><span class="t">/&gt;</span>
+    <span class="t">&lt;note&gt;</span>submits signup<span class="t">&lt;/note&gt;</span>
+  <span class="t">&lt;/component&gt;</span>
+<span class="t">&lt;/row&gt;</span></pre>
+        <p style="margin-top:12px">Agent: emits <code>&lt;header class="flex justify-between…"&gt;</code> + the real components.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 MODEL -->
+<section id="model">
+  <div class="wrap">
+    <div class="shead"><span class="snum">02</span><div><h2>The document model</h2>
+      <p>Two node kinds. Position is never x/y — it’s <b>which frame you’re in</b> + <b>align / justify</b>. Size is <code>hug · fill · fixed</code> (Figma’s model → flexbox).</p></div></div>
+    <div class="grid2">
+      <div class="card"><div class="tag" style="color:var(--accent)">container — a frame / group</div>
+        <p style="margin-top:10px"><code>layout</code> stack·grid·free · <code>direction</code> row·col · <code>gap</code> · <code>padding</code> · <code>align</code> (cross) · <code>justify</code> (main) · <code>width/height</code> hug·fill·fixed · <code>children[]</code>.</p>
+        <p style="margin-top:10px"><b>A group is just a frame.</b> Group = wrap selection in a new frame; ungroup = splice back. Nesting is free.</p>
+      </div>
+      <div class="card"><div class="tag" style="color:var(--lime)">component — a registry instance</div>
+        <p style="margin-top:10px"><code>componentKey</code> · <code>src</code> (import path → agent) · <code>variantValues</code> · <code>note</code> (per-instance prompt) · <code>alignSelf</code> (left/center/right) · <code>width/height</code>.</p>
+        <p style="margin-top:10px">Renders its <b>real self</b> on canvas (via the registry) — what you see is the layout.</p>
+      </div>
+    </div>
+    <p style="color:var(--muted); margin-top:18px; font-size:14px">✓ <span class="good">Shipped &amp; verified:</span> <code>model.ts</code> (tree + group/ungroup/move) · <code>xml.ts</code> (the serializer above) · <code>defaults.ts</code>. The sandbox below runs this exact logic.</p>
+  </div>
+</section>
+
+<!-- 03 EDITOR SANDBOX -->
+<section id="editor">
+  <div class="wrap">
+    <div class="shead"><span class="snum">03</span><div><h2>The editor — try it</h2>
+      <p>A miniature of the real thing: <b>Components</b> · <b>Layers</b> · <b>Canvas</b> · <b>Inspector</b>. Add components, select, set alignment, <b>Group</b> into frames — watch the live XML the agent receives.</p></div></div>
+
+    <div class="sandbox">
+      <div class="sb-bar">
+        <span class="lights"><i></i><i></i><i></i></span>
+        <span class="sb-title">layout-editor · sandbox</span>
+        <span class="sb-hint">click to select · shift-click to multi-select</span>
+      </div>
+      <div class="editor">
+        <!-- LEFT -->
+        <div class="panel">
+          <div class="panel-h">Components</div>
+          <div class="panel-body" id="palette"></div>
+          <div class="panel-h" style="border-top:1px solid var(--line)">Layers <span class="sub" id="loadEx">load example</span></div>
+          <div class="panel-body" id="layers" style="max-height:150px"></div>
+        </div>
+        <!-- CANVAS -->
+        <div class="panel">
+          <div class="panel-h">Canvas <span style="margin-left:auto;color:var(--faint)">real flex / grid</span></div>
+          <div class="canvas-wrap panel-body" id="canvas"></div>
+        </div>
+        <!-- INSPECTOR -->
+        <div class="panel">
+          <div class="panel-h">Inspector</div>
+          <div class="panel-body insp" id="inspector"></div>
+        </div>
+      </div>
+      <div class="sb-actions">
+        <button class="btn pri" id="btnGroup" title="Wrap selection in a frame (⌘G)">⊞ Group</button>
+        <button class="btn" id="btnUngroup">⊟ Ungroup</button>
+        <button class="btn ghost" id="btnDup">⧉ Duplicate</button>
+        <button class="btn ghost" id="btnDel">🗑 Delete</button>
+        <button class="btn ghost" id="btnReset" style="margin-left:auto">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="xmlout">
+      <div class="panel-h">Agent output — <span style="color:var(--lime); margin-left:6px">toXml(doc)</span> <span style="margin-left:auto; color:var(--faint)" id="xmlmeta"></span></div>
+      <pre class="code" id="xml"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- 04 INTERACTIONS -->
+<section id="interactions">
+  <div class="wrap">
+    <div class="shead"><span class="snum">04</span><div><h2>Interactions</h2>
+      <p>Simple &amp; Figma-familiar. Alignment buttons replace dragging to coordinates; x/y is only a last-resort “free” frame.</p></div></div>
+    <div class="grid2">
+      <div class="card"><h3>Compose</h3><p>Drag from Components, or select → click-place into a frame. Multi-select (shift / marquee).</p></div>
+      <div class="card"><h3>Group / ungroup</h3><p>⌘G wraps selection in an auto-layout frame; ⌘⇧G splices it back. The Layers tree is the backbone.</p></div>
+      <div class="card"><h3>Align, don’t position</h3><p>Left / center / right + top / middle / bottom set <code>align</code>·<code>justify</code>·<code>alignSelf</code> — semantic, not pixels.</p></div>
+      <div class="card"><h3>Reparent</h3><p>Drag in the Layers tree (precise) or on canvas into a frame. Cycle-guarded.</p></div>
+      <div class="card"><h3>Resize = hug · fill · fixed</h3><p>Handles only on fluid axes; intrinsic components (DatePicker) stay locked to their real size.</p></div>
+      <div class="card"><h3>History</h3><p>⌘Z / ⌘⇧Z over immutable tree snapshots. Rename · hide · lock · duplicate ⌘D.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 FLOW -->
+<section id="flow">
+  <div class="wrap">
+    <div class="shead"><span class="snum">05</span><div><h2>Execution flow</h2>
+      <p>Built bottom-up so each layer is verifiable. Tap a phase for detail. <span class="good">Green = shipped.</span></p></div></div>
+    <div class="flow" id="flowList"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>Agentation · Layout Editor v2 — interactive plan. Sandbox runs the real <code>model</code> + <code>toXml</code> logic.</div>
+    <div>Ported from <a class="lime-link" href="https://github.com/benjitaylor/agentation">benjitaylor/agentation</a> · this doc is for validation</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================================
+   Minimal port of model.ts + xml.ts — real logic, runs the sandbox.
+============================================================================ */
+let _id=0; const nid=p=>`${p}${++_id}`;
+const REG={
+  Logo:{glyph:"◇",variants:{}},
+  Button:{glyph:"▭",variants:{intent:["primary","secondary","ghost"],size:["sm","md","lg"]}},
+  Input:{glyph:"▭",variants:{},width:"fill"},
+  Card:{glyph:"▢",variants:{},width:"fill"},
+  Badge:{glyph:"◔",variants:{tone:["info","success","warn"]}},
+};
+function comp(name){
+  const r=REG[name]||{variants:{}}; const v={};
+  for(const k in r.variants) v[k]=r.variants[k][0];
+  return {id:nid("n"),kind:"component",name,variants:v,note:"",width:r.width||"hug"};
+}
+function frame(p={}){return {id:nid("c"),kind:"container",name:p.name||"Frame",direction:p.direction||"column",
+  align:p.align||"stretch",justify:p.justify||"start",gap:p.gap??12,width:p.width||"hug",children:p.children||[]};}
+function root(children){const f=frame({name:"Screen",direction:"column",gap:16,align:"stretch",width:"fill",children:children||[]});f.id="root";return f;}
+
+let doc, sel;
+function reset(){_id=0; doc=root([]); sel=new Set(); render();}
+
+/* tree helpers (mutable for the sandbox) */
+function walk(n,fn,par){fn(n,par||null); if(n.kind==="container")n.children.forEach(c=>walk(c,fn,n));}
+function find(id){let r=null; walk(doc,n=>{if(n.id===id)r=n;}); return r;}
+function parentOf(id){let r=null; walk(doc,(n,p)=>{if(n.id===id)r=p;}); return r;}
+function isAnc(aid,id){const a=find(aid); if(!a||a.kind!=="container")return aid===id; let h=false; walk(a,n=>{if(n.id===id)h=true}); return h;}
+
+function addComponent(name){
+  const target = singleSelectedContainer() || doc;
+  target.children.push(comp(name)); render();
+}
+function singleSelectedContainer(){
+  if(sel.size!==1) return null; const n=find([...sel][0]); return n&&n.kind==="container"?n:null;
+}
+function groupSel(){
+  const ids=[...sel]; if(!ids.length)return; const par=parentOf(ids[0]); if(!par)return;
+  if(!ids.every(id=>parentOf(id)?.id===par.id))return; // must be siblings
+  const set=new Set(ids); const picked=par.children.filter(c=>set.has(c.id));
+  const i=par.children.findIndex(c=>set.has(c.id));
+  const g=frame({name:"Group",direction:"column",align:"stretch",width:"hug",children:picked});
+  par.children=par.children.flatMap((c,idx)=> idx===i ? [g] : (set.has(c.id)?[]:[c]));
+  sel=new Set([g.id]); render();
+}
+function ungroupSel(){
+  [...sel].forEach(id=>{const n=find(id); if(!n||n.kind!=="container"||n.id==="root")return;
+    const par=parentOf(id); if(!par)return;
+    par.children=par.children.flatMap(c=>c.id===id?n.children:[c]);});
+  sel=new Set(); render();
+}
+function delSel(){[...sel].forEach(id=>{if(id==="root")return; const par=parentOf(id); if(par)par.children=par.children.filter(c=>c.id!==id);}); sel=new Set(); render();}
+function cloneNode(n){return n.kind==="container"?{...n,id:nid("c"),children:n.children.map(cloneNode)}:{...n,id:nid("n"),variants:{...n.variants}};}
+function dupSel(){const ids=[...sel]; const ni=[]; ids.forEach(id=>{const par=parentOf(id),n=find(id); if(!par||!n)return; const i=par.children.findIndex(c=>c.id===id); const cl=cloneNode(n); par.children.splice(i+1,0,cl); ni.push(cl.id);}); sel=new Set(ni); render();}
+
+/* selection */
+function pick(id,additive){if(additive){sel.has(id)?sel.delete(id):sel.add(id);}else{sel=new Set([id]);} render();}
+
+/* ---- XML ---- */
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function tagFor(c,isRoot){if(isRoot)return"screen"; if(c.layout==="grid")return"grid"; return c.direction==="row"?"row":"column";}
+function attrs(p){return p.filter(([,v])=>v!==null&&v!==undefined&&v!==false&&v!=="").map(([k,v])=>v===true?k:`${k}="${esc(v)}"`).join(" ").replace(/^/,m=>m?" ":"");}
+function sx(n,d,isRoot){
+  const pad="  ".repeat(d);
+  if(n.kind==="container"){
+    const t=tagFor(n,isRoot);
+    const a=attrs([["name",(isRoot||n.name==="Frame"||n.name==="Group")?null:n.name],["gap",n.gap||null],
+      ["align",n.align!=="stretch"?n.align:null],["justify",n.justify!=="start"?n.justify:null],["width",n.width!=="hug"?n.width:null]]);
+    if(!n.children.length)return `${pad}<span class="t">&lt;${t}${a} /&gt;</span>`;
+    const inner=n.children.map(c=>sx(c,d+1)).join("\n");
+    return `${pad}<span class="t">&lt;${t}${a}&gt;</span>\n${inner}\n${pad}<span class="t">&lt;/${t}&gt;</span>`;
+  }
+  const a=attrs([["name",n.name],["src","@ui"],["width",n.width!=="hug"?n.width:null]]);
+  const props=Object.entries(n.variants).filter(([,v])=>v!=null&&v!=="");
+  if(!props.length&&!n.note)return `${pad}<span class="t">&lt;component${a} /&gt;</span>`;
+  let out=`${pad}<span class="t">&lt;component${a}&gt;</span>`;
+  props.forEach(([k,v])=>out+=`\n${"  ".repeat(d+1)}<span class="t">&lt;prop</span> name="${esc(k)}" value="<span class="v">${esc(v)}</span>"<span class="t">/&gt;</span>`);
+  if(n.note)out+=`\n${"  ".repeat(d+1)}<span class="t">&lt;note&gt;</span>${esc(n.note)}<span class="t">&lt;/note&gt;</span>`;
+  out+=`\n${pad}<span class="t">&lt;/component&gt;</span>`;
+  return out;
+}
+function toXmlHtml(){return sx(doc,0,true);}
+
+/* ---- render ---- */
+const $=id=>document.getElementById(id);
+const mapA=a=>({start:"flex-start",center:"center",end:"flex-end",stretch:"stretch"}[a]||"stretch");
+const mapJ=j=>({start:"flex-start",center:"center",end:"flex-end",between:"space-between"}[j]||"flex-start");
+
+function elFor(n){
+  const d=document.createElement("div"); d.dataset.id=n.id;
+  if(n.kind==="component"){
+    d.className="le-comp"+(sel.has(n.id)?" sel":"");
+    if(n.width==="fill")d.style.flex="1 1 0";
+    let chips=""; for(const k in n.variants) chips+=`<span class="le-chip">${esc(n.variants[k])}</span>`;
+    d.innerHTML=`<span class="nm">${esc(n.name)}</span>${chips}${n.note?'<span class="le-note">✎</span>':""}`;
+    return d;
+  }
+  d.className="le-frame"+(n.id==="root"?" root":"")+(sel.has(n.id)?" sel":"")+(!n.children.length?" empty":"");
+  d.style.display="flex"; d.style.flexDirection=n.direction; d.style.gap=n.gap+"px";
+  d.style.alignItems=mapA(n.align); d.style.justifyContent=mapJ(n.justify);
+  if(n.width==="fill")d.style.flex="1 1 0";
+  n.children.forEach(c=>d.appendChild(elFor(c)));
+  return d;
+}
+function renderLayers(){
+  const box=$("layers"); box.innerHTML="";
+  walk(doc,(n,p)=>{
+    const depth=(function(){let d=0,x=n; while((x=parentOf(x.id)))d++; return d;})();
+    const row=document.createElement("div");
+    row.className="layer"+(n.kind==="container"?" frame":"")+(sel.has(n.id)?" sel":"");
+    row.style.paddingLeft=(8+depth*14)+"px"; row.dataset.id=n.id;
+    row.innerHTML=`<span class="ic">${n.kind==="container"?"▣":"◆"}</span>${esc(n.name)}`;
+    row.onclick=e=>pick(n.id,e.shiftKey);
+    box.appendChild(row);
+  });
+}
+function segBtns(label,opts,cur,cb){
+  let h=`<label>${label}</label><div class="seg">`;
+  opts.forEach(([val,txt])=>h+=`<button data-v="${val}" class="${cur===val?"on":""}">${txt}</button>`);
+  return h+`</div>`;
+}
+function renderInspector(){
+  const box=$("inspector");
+  if(sel.size===0){box.innerHTML='<div class="empty">— nothing selected —<br><br>Add a component, then select it to configure alignment, size &amp; props.</div>';return;}
+  if(sel.size>1){box.innerHTML=`<div class="empty">${sel.size} selected.<br><br>Hit <b style="color:var(--lime)">⊞ Group</b> to wrap them in a frame.</div>`;return;}
+  const n=find([...sel][0]);
+  if(n.kind==="container"){
+    box.innerHTML=`<div class="meta">${n.id==="root"?"screen (root frame)":"frame"}</div>
+      ${segBtns("Direction",[["row","→ Row"],["column","↓ Column"]],n.direction)}
+      ${segBtns("Align (cross)",[["start","Start"],["center","Center"],["end","End"],["stretch","Stretch"]],n.align)}
+      ${segBtns("Justify (main)",[["start","Start"],["center","Center"],["end","End"],["between","Between"]],n.justify)}
+      ${segBtns("Width",[["hug","Hug"],["fill","Fill"]],n.width)}
+      <label>Gap — <span id="gapv">${n.gap}px</span></label>
+      <input type="range" min="0" max="48" value="${n.gap}" id="gap">`;
+    box.querySelectorAll(".seg").forEach((seg,i)=>{const keys=["direction","align","justify","width"];
+      seg.querySelectorAll("button").forEach(b=>b.onclick=()=>{n[keys[i]]=b.dataset.v; render();});});
+    $("gap").oninput=e=>{n.gap=+e.target.value; $("gapv").textContent=n.gap+"px"; render();};
+  }else{
+    const r=REG[n.name]||{variants:{}};
+    let vh="";
+    for(const k in r.variants){
+      vh+=segBtns(k,r.variants[k].map(o=>[o,o]),n.variants[k]);
+    }
+    box.innerHTML=`<div class="meta">component · src=&quot;@ui&quot;</div>
+      ${vh}
+      ${segBtns("Width",[["hug","Hug"],["fill","Fill"]],n.width)}
+      <label>Note / prompt (for the agent)</label>
+      <textarea id="note" placeholder="e.g. submits the signup form">${esc(n.note)}</textarea>`;
+    const segs=box.querySelectorAll(".seg"); const vkeys=Object.keys(r.variants);
+    segs.forEach((seg,i)=>{const key = i<vkeys.length?vkeys[i]:"width";
+      seg.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(key==="width")n.width=b.dataset.v; else n.variants[key]=b.dataset.v; render();});});
+    $("note").oninput=e=>{n.note=e.target.value; updateXml();};
+  }
+}
+function renderPalette(){
+  const box=$("palette"); box.innerHTML="";
+  Object.keys(REG).forEach(name=>{
+    const b=document.createElement("button"); b.className="pal-item";
+    b.innerHTML=`<span class="glyph">${REG[name].glyph}</span> ${name}`;
+    b.onclick=()=>addComponent(name); box.appendChild(b);
+  });
+}
+function updateXml(){ $("xml").innerHTML=toXmlHtml(); let n=0; walk(doc,x=>{if(x.kind==="component")n++}); $("xmlmeta").textContent=n+" component"+(n===1?"":"s"); }
+function render(){
+  const c=$("canvas"); c.innerHTML=""; c.appendChild(elFor(doc));
+  renderLayers(); renderInspector(); updateXml();
+  $("btnUngroup").disabled = ![...sel].some(id=>{const x=find(id);return x&&x.kind==="container"&&id!=="root";});
+  $("btnGroup").disabled = sel.size<1 || [...sel].includes("root");
+}
+$("canvas").addEventListener("click",e=>{const t=e.target.closest("[data-id]"); if(t){e.stopPropagation(); pick(t.dataset.id,e.shiftKey);}});
+$("btnGroup").onclick=groupSel; $("btnUngroup").onclick=ungroupSel; $("btnDel").onclick=delSel;
+$("btnDup").onclick=dupSel; $("btnReset").onclick=reset;
+$("loadEx").onclick=()=>{
+  _id=0;
+  const logo=comp("Logo");
+  const b1=comp("Button"); b1.variants.intent="ghost"; b1.note="Secondary action";
+  const b2=comp("Button"); b2.variants.intent="primary"; b2.note="Submits the signup form";
+  const actions=frame({name:"Actions",direction:"row",gap:8,width:"hug",children:[b1,b2]});
+  const header=frame({name:"Header",direction:"row",justify:"between",align:"center",width:"fill",children:[logo,actions]});
+  const cards=frame({name:"Cards",direction:"row",gap:16,width:"fill",children:[comp("Card"),comp("Card"),comp("Card")]});
+  doc=root([header,cards]); sel=new Set([header.id]); render();
+};
+document.addEventListener("keydown",e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="g"){e.preventDefault(); e.shiftKey?ungroupSel():groupSel();}
+  if(e.key==="Backspace"&&sel.size&&!/input|textarea/i.test(e.target.tagName)){e.preventDefault(); delSel();}
+});
+
+/* ---- roadmap ---- */
+const PHASES=[
+  {when:"Shipped",st:"done",t:"Foundation — semantic core",d:"The model + serializer, verified with unit checks. This page’s sandbox runs it.",m:["model.ts","xml.ts","defaults.ts"]},
+  {when:"Next",st:"next",t:"State + history",d:"Reactive editor store (selection, hover, clipboard, drag state) over the immutable tree, with undo/redo snapshots.",m:["editor.svelte.ts","history.svelte.ts"]},
+  {when:"Then",st:"todo",t:"Canvas + render",d:"Recursive NodeView renders the tree with real flex/grid; selection & hover overlays; resize handles gated by hug/fill/fixed.",m:["NodeView.svelte","Canvas.svelte"]},
+  {when:"Then",st:"todo",t:"Panels",d:"Left: Components palette + Layers tree with drag-reparent. Right: Inspector — align/justify/gap/padding + variant form + note + src.",m:["LeftPanel.svelte","LayersTree.svelte","Inspector.svelte"]},
+  {when:"Then",st:"todo",t:"Interactions",d:"Drag-from-palette, drag-move/reparent on canvas, marquee, align/group toolbar, duplicate, keyboard shortcuts, undo/redo.",m:["Toolbar.svelte","shortcuts.ts"]},
+  {when:"Finally",st:"todo",t:"Wire-in + output",d:"toXml into the copy/send pipeline; mount the editor from the toolbar’s Layout button; migrate old placements; remove dead code; svelte-check 0/0 + headless verify.",m:["output.ts","integration","migration"]},
+];
+const fl=$("flowList");
+PHASES.forEach((p,i)=>{
+  const el=document.createElement("div"); el.className="phase"+(i===0?" open":"");
+  el.innerHTML=`<div class="when"><span class="st ${p.st}">${p.st==="done"?"✓ ":""}${p.when}</span></div>
+    <div><h3>${p.t} <span class="chev">›</span></h3><div class="det">${p.d}<div class="modules">${p.m.map(m=>`<span class="mod">${m}</span>`).join("")}</div></div></div>`;
+  el.onclick=()=>el.classList.toggle("open");
+  fl.appendChild(el);
+});
+
+reset();
+</script>
+</body>
+</html>
