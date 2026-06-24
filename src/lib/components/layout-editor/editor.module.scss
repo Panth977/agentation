@@ -21,15 +21,29 @@
   position: fixed;
   inset: 0;
   z-index: 100040;
-  display: grid;
-  grid-template-columns: 232px 1fr 264px;
-  grid-template-rows: 46px 1fr;
-  grid-template-areas: "topbar topbar topbar" "left canvas right";
-  background: var(--le-bg);
+  // TRANSPARENT overlay: the live page stays visible underneath; the layout
+  // tooling floats on top. Children re-enable pointer events.
+  background: transparent;
+  pointer-events: none;
   color: var(--le-ink);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 13px;
   letter-spacing: -0.01em;
+
+  // floating dock metrics
+  --le-top: 46px;
+  --le-leftw: 232px;
+  --le-rightw: 264px;
+  --le-pad: 12px;
+}
+// Floating-card surface shared by the docked panels + topbar (page shows behind).
+%dock {
+  pointer-events: auto;
+  z-index: 2;
+  background: color-mix(in srgb, var(--le-surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--le-line);
+  box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.55);
 }
 :global([data-agentation-theme="dark"]) .editor {
   --le-bg: #1a1a1a;
@@ -45,13 +59,17 @@
 }
 
 .topbar {
-  grid-area: topbar;
+  @extend %dock;
+  position: fixed;
+  top: var(--le-pad);
+  left: 50%;
+  transform: translateX(-50%);
+  height: 38px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--le-line);
-  background: var(--le-surface);
+  padding: 0 10px;
+  border-radius: 11px;
 }
 .title {
   font-weight: 650;
@@ -80,16 +98,45 @@
 }
 
 // panels ---------------------------------------------------------------------
-.left { grid-area: left; border-right: 1px solid var(--le-line); display: flex; flex-direction: column; min-width: 0; background: var(--le-surface); }
-.right { grid-area: right; border-left: 1px solid var(--le-line); display: flex; flex-direction: column; min-width: 0; overflow: auto; background: var(--le-surface); }
-.canvasWrap {
-  grid-area: canvas;
+.left {
+  @extend %dock;
+  position: fixed;
+  left: var(--le-pad);
+  top: calc(var(--le-top) + var(--le-pad) * 2);
+  bottom: var(--le-pad);
+  width: var(--le-leftw);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.right {
+  @extend %dock;
+  position: fixed;
+  right: var(--le-pad);
+  top: calc(var(--le-top) + var(--le-pad) * 2);
+  bottom: var(--le-pad);
+  width: var(--le-rightw);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   overflow: auto;
-  padding: 40px;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 23px, rgba(128, 128, 128, 0.06) 23px 24px),
-    repeating-linear-gradient(90deg, transparent 0 23px, rgba(128, 128, 128, 0.06) 23px 24px),
-    var(--le-canvas);
+}
+// Transparent canvas spanning the viewport — the live page shows THROUGH it.
+// Padding keeps the composed layout clear of the floating docks.
+.canvasWrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto;
+  overflow: auto;
+  background: transparent;
+  padding: calc(var(--le-top) + var(--le-pad) * 2 + 8px)
+    calc(var(--le-rightw) + var(--le-pad) * 2)
+    40px
+    calc(var(--le-leftw) + var(--le-pad) * 2);
 }
 .panelH {
   font-size: 10.5px;
