@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { untrack } from "svelte";
+  import { untrack, type Snippet } from "svelte";
   import { EditorStore } from "./editor.svelte.js";
   import type { NormalizedRegistry } from "../design-mode/registry.js";
   import type { Document } from "./model.js";
@@ -11,12 +11,14 @@
   let {
     registry,
     initial,
+    wrapper,
     onClose,
     onCopy,
     onChange,
   }: {
     registry: NormalizedRegistry;
     initial?: Document;
+    wrapper?: Snippet<[inner: Snippet]>;
     onClose?: () => void;
     onCopy?: (xml: string) => void;
     onChange?: (doc: Document) => void;
@@ -87,6 +89,6 @@
   </div>
 
   <LeftPanel {store} />
-  <Canvas {store} />
+  <Canvas {store} {wrapper} />
   <Inspector {store} />
 </div>

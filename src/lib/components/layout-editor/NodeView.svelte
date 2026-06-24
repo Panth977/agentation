@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import type { EditorStore } from "./editor.svelte.js";
   import type { Node, Direction, SizeMode, Align, Justify } from "./model.js";
   import { isContainer } from "./model.js";
@@ -10,7 +11,8 @@
     store,
     node,
     parentDirection = "column",
-  }: { store: EditorStore; node: Node; parentDirection?: Direction } = $props();
+    wrapper,
+  }: { store: EditorStore; node: Node; parentDirection?: Direction; wrapper?: Snippet<[inner: Snippet]> } = $props();
 
   const selected = $derived(store.isSelected(node.id));
   const hovered = $derived(store.hover === node.id && !selected);
@@ -82,7 +84,7 @@
     onmouseover={onOver}
   >
     {#each node.children as child (child.id)}
-      <Self {store} node={child} parentDirection={node.layout === "grid" ? "row" : node.direction} />
+      <Self {store} node={child} parentDirection={node.layout === "grid" ? "row" : node.direction} {wrapper} />
     {/each}
   </div>
 {:else}
@@ -99,7 +101,7 @@
     onmouseover={onOver}
   >
     {#if def}
-      <ComponentPreview {def} values={node.variantValues} mode="canvas" />
+      <ComponentPreview {def} values={node.variantValues} mode="canvas" {wrapper} />
     {:else}
       <span class={styles.missing}>{node.name}</span>
     {/if}

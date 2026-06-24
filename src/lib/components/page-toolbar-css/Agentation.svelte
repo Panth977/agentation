@@ -237,6 +237,8 @@
   } from "../design-mode/types.js";
   import { normalizeRegistry, sizeForKey, defaultVariantValues, initialSize } from "../design-mode/registry.js";
   import { builtinComponents } from "../design-mode/builtins.js";
+  import { LayoutEditor } from "../layout-editor/index.js";
+  import type { Document as LayoutDoc } from "../layout-editor/model.js";
 
   import {
     DEFAULT_SETTINGS,
@@ -310,6 +312,8 @@
   let isDesignMode = $state(false);
   let designOverlayExiting = $state(false);
   let designPlacements = $state<DesignPlacement[]>([]);
+  // Layout Editor v2 document (semantic tree). Replaces flat placements.
+  let designDoc = $state<LayoutDoc | undefined>(undefined);
   let activeDesignComponent = $state<string | null>(null);
   let designPlacementsLoaded = false;
   let blankCanvas = $state(false);
@@ -2950,9 +2954,9 @@
           </div>
         </div>
 
-        <!-- Layout Mode Palette -->
+        <!-- Layout Mode Palette (legacy — superseded by the Layout Editor overlay) -->
         <DesignPalette
-          visible={isDesignMode && isActive}
+          visible={false}
           sections={designRegistry.sections}
           activeKey={activeDesignComponent}
           onSelect={(key: string) => {
@@ -3085,8 +3089,25 @@
       </div>
     </div>
 
-    <!-- Blank canvas backdrop -->
-    {#if isDesignMode || designOverlayExiting}
+    <!-- Layout Editor (v2) — integrated overlay opened from the Layout button -->
+    {#if isDesignMode}
+      <LayoutEditor
+        registry={designRegistry}
+        initial={designDoc}
+        {wrapper}
+        onChange={(d) => (designDoc = d)}
+        onClose={closeDesignMode}
+        onCopy={(xml) => {
+          if (copyToClipboard && typeof navigator !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(xml).catch(() => {});
+          }
+          onCopy?.(xml);
+        }}
+      />
+    {/if}
+
+    <!-- Blank canvas backdrop (legacy) -->
+    {#if false}
       <div
         class={`${designStyles.blankCanvas} ${canvasReady ? designStyles.visible : ""} ${designInteracting ? designStyles.gridActive : ""}`}
         style={`--canvas-opacity: ${canvasOpacity}`}
@@ -3094,8 +3115,8 @@
       ></div>
     {/if}
 
-    <!-- Wireframe hint -->
-    {#if isDesignMode && blankCanvas && canvasReady}
+    <!-- Wireframe hint (legacy) -->
+    {#if false}
       <div class={designStyles.wireframeNotice} data-feedback-toolbar>
         <div class={designStyles.wireframeOpacityRow}>
           <span class={designStyles.wireframeOpacityLabel}>Toggle Opacity</span>
@@ -3129,8 +3150,8 @@
       </div>
     {/if}
 
-    <!-- Layout mode overlay -->
-    {#if isDesignMode || designOverlayExiting}
+    <!-- Layout mode overlay (legacy DesignMode) -->
+    {#if false}
       <DesignMode
         placements={designPlacements}
         onChange={(p) => (designPlacements = p)}
