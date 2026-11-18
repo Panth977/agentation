@@ -130,6 +130,7 @@
   import AnnotationPopupCSS from "../annotation-popup-css/AnnotationPopupCSS.svelte";
   import styles from "./styles.module.scss";
   import { originalSetTimeout } from "$lib/utils/freeze-animations.js";
+  import { isTypingEvent } from "$lib/utils/is-typing.js";
 
   let {
     placements,
@@ -207,12 +208,7 @@
     placements;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const isTyping =
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable;
-      if (isTyping) return;
+      if (isTypingEvent(e)) return;
 
       // Delete selected (animate out, then remove)
       if ((e.key === "Backspace" || e.key === "Delete") && selectedIds.size > 0) {

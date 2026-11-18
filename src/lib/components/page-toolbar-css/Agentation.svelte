@@ -247,6 +247,7 @@
     type ToolbarSettings,
   } from "./types.js";
   import type { PageFeedbackToolbarCSSProps } from "./types.js";
+  import { isTypingEvent } from "$lib/utils/is-typing.js";
 
   let {
     demoAnnotations,
@@ -2587,11 +2588,7 @@
   $effect(() =>
     untrack(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
-        const target = e.target as HTMLElement;
-        const isTyping =
-          target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable;
+        const isTyping = isTypingEvent(e);
 
         if (e.key === "Escape") {
           if (isDesignMode) {

@@ -132,6 +132,7 @@
   import type { DetectedSection, RearrangeState } from "./types.js";
   import styles from "./styles.module.scss";
   import { originalSetTimeout } from "$lib/utils/freeze-animations.js";
+  import { isTypingEvent } from "$lib/utils/is-typing.js";
 
   type Rect = { x: number; y: number; width: number; height: number };
 
@@ -444,8 +445,7 @@
     // deps: selectedIds, sections, rearrangeState, onChange
     selectedIds; sections; rearrangeState; onChange;
     const handleKeyDown = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
+      if (isTypingEvent(e)) return;
 
       if ((e.key === "Backspace" || e.key === "Delete") && selectedIds.size > 0) {
         e.preventDefault();
